@@ -13,6 +13,7 @@
 // Hieght
 
 // GLOBAL VARIABLES
+bool are_we_finding_offsets = true;
 
 float initial_pressure;  // pressure at setup
 float current_pressure;  // pressure at loop
@@ -23,6 +24,10 @@ float reading_2_pressure;
 float x_gyro_acc = 0;
 float y_gyro_acc = 0;
 float z_gyro_acc = 0;
+
+float x_gyro_offset = 0;
+float y_gyro_offset = 0;
+float z_gyro_offset = 0;
 
 float x_gyro_angle = 0;
 float y_gyro_angle = 0;
@@ -41,12 +46,16 @@ long last_time_clock = 0;
 void integrate_gyro() {
     if (IMU.gyroscopeAvailable()) {
         IMU.readGyroscope(x_gyro_acc, y_gyro_acc, z_gyro_acc);
-
+        //  Serial.println(y_gyro_acc);
         long t_diff = micros() - last_time_clock;
         double t_diff_dec = (double)t_diff / (double)1000000;
         //  if (micros() % 100 == 1) {
         //    Serial.println(t_diff_dec, 10);
         //  }
+        x_gyro_acc -= x_gyro_offset;
+        y_gyro_acc -= y_gyro_offset;
+        z_gyro_acc -= z_gyro_offset;
+        // Serial.println(x_gyro_acc);
         if (abs(x_gyro_acc) > 10) {
             x_gyro_angle += x_gyro_acc * t_diff_dec;
         }
@@ -67,21 +76,47 @@ void on_board_led(int r, int g, int b) {
 }
 
 void setup() {
+    on_board_led(255, 0, 0);
+    Serial.begin(
+        9600);  // opens serial port, sets data rate to 9600 bps debug serial
+    while (!Serial) delay(10);  // wait for computer to connect (debug)
+    Serial.println("Begin program");
+
     // initialize IMU
     IMU.begin();
+    while (!IMU.begin()) {
+        Serial.println("fail int IMU");
+        IMU.end();
+        delay(100);
+        IMU.begin();
+    }
+
+    // garbage read
+    for (int i = 0; i < 2000; i++) {
+        IMU.readGyroscope(x_gyro_acc, y_gyro_acc, z_gyro_acc);
+    }
+    // calibrate IMU offsets
+    if (are_we_finding_offsets) {
+        for (int i = 0; i < 5000; i++) {
+            IMU.readGyroscope(x_gyro_acc, y_gyro_acc, z_gyro_acc);
+            x_gyro_offset += x_gyro_acc;
+            y_gyro_offset += y_gyro_acc;
+            z_gyro_offset += z_gyro_acc;
+        }
+        x_gyro_offset = x_gyro_offset / (float)5000;
+        y_gyro_offset = y_gyro_offset / (float)5000;
+        z_gyro_offset = z_gyro_offset / (float)5000;
+
+        Serial.println(x_gyro_offset);
+        Serial.println(y_gyro_offset);
+        Serial.println(z_gyro_offset);
+    }
 
     // LED PINMODE INITIALIZATION
     pinMode(ON_BOARD_LED_GREEN, OUTPUT);
     pinMode(ON_BOARD_LED_RED, OUTPUT);
     pinMode(ON_BOARD_LED_BLUE, OUTPUT);
     pinMode(LED_BUILTIN, OUTPUT);
-
-    on_board_led(255, 0, 0);
-
-    Serial.begin(
-        9600);  // opens serial port, sets data rate to 9600 bps debug serial
-   // while (!Serial) delay(10);
-    Serial.println("Begin program");
 
     delay(100);
     on_board_led(0, 255, 0);
@@ -91,14 +126,13 @@ void setup() {
 void loop() {
     // imu test
     integrate_gyro();
-  //  if (micros() % 10 == 1) {
-        //Serial.println(y_gyro_angle);
-   // }
+    if (micros() % 300 == 1 && !are_we_finding_offsets) {
+         Serial.println(y_gyro_angle);
+    }
     if (abs(y_gyro_angle) > 100) {
         on_board_led(0, 18, 179);  // yellowish
-        Serial.println("DEPLOY"); 
+        Serial.println("DEPLOY");
         while (true) {
-          
         }
     }
     // delay(5);
