@@ -25,9 +25,9 @@ float x_gyro_acc = 0;
 float y_gyro_acc = 0;
 float z_gyro_acc = 0;
 
-float x_gyro_offset = 0;
-float y_gyro_offset = 0;
-float z_gyro_offset = 0;
+float x_gyro_offset = 0.5;
+float y_gyro_offset = 0.63;
+float z_gyro_offset = -0.69;
 
 float x_gyro_angle = 0;
 float y_gyro_angle = 0;
@@ -97,19 +97,19 @@ void setup() {
     }
     // calibrate IMU offsets
     if (are_we_finding_offsets) {
-        for (int i = 0; i < 5000; i++) {
+        for (int i = 0; i < 10000; i++) {
             IMU.readGyroscope(x_gyro_acc, y_gyro_acc, z_gyro_acc);
             x_gyro_offset += x_gyro_acc;
             y_gyro_offset += y_gyro_acc;
             z_gyro_offset += z_gyro_acc;
         }
-        x_gyro_offset = x_gyro_offset / (float)5000;
-        y_gyro_offset = y_gyro_offset / (float)5000;
-        z_gyro_offset = z_gyro_offset / (float)5000;
+        float found_x_gyro_offset = x_gyro_offset / (float)10000;
+        float found_y_gyro_offset = y_gyro_offset / (float)10000;
+        float found_z_gyro_offset = z_gyro_offset / (float)10000;
 
-        Serial.println(x_gyro_offset);
-        Serial.println(y_gyro_offset);
-        Serial.println(z_gyro_offset);
+        Serial.println(found_x_gyro_offset);
+        Serial.println(found_y_gyro_offset);
+        Serial.println(found_z_gyro_offset);
     }
 
     // LED PINMODE INITIALIZATION
