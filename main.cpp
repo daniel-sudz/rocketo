@@ -58,13 +58,13 @@ void integrate_gyro() {
         y_gyro_acc -= y_gyro_offset;
         z_gyro_acc -= z_gyro_offset;
         // Serial.println(x_gyro_acc);
-        if (abs(x_gyro_acc) > 1) {
+        if (abs(x_gyro_acc) > 5) {
             x_gyro_angle += x_gyro_acc * t_diff;
         }
-        if (abs(y_gyro_acc) > 1) {
+        if (abs(y_gyro_acc) > 5) {
             y_gyro_angle += y_gyro_acc * t_diff;
         }
-        if (abs(z_gyro_acc) > 1) {
+        if (abs(z_gyro_acc) > 5) {
             z_gyro_angle += z_gyro_acc * t_diff;
         }
 }
@@ -127,10 +127,10 @@ void setup() {
 void loop() {
     // imu test
     integrate_gyro();
-    if (micros() % 300 == 1 && !are_we_finding_offsets) {
-         Serial.println(y_gyro_angle / 1000000);
+    if (micros() % 100 == 1 && !are_we_finding_offsets) {
+         Serial.print(y_gyro_angle / 1000000); Serial.print(" "); Serial.print(z_gyro_angle / 1000000); Serial.println(); 
     }
-    if (abs(y_gyro_angle) > 100 * 1000000) {
+    if (abs(y_gyro_angle) > 100 * 1000000 || abs(z_gyro_angle) > 100 * 1000000 ) {
         on_board_led(0, 18, 179);  // yellowish
         Serial.println("DEPLOY");
         while (true) {
