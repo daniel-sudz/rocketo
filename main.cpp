@@ -13,7 +13,7 @@
 // Hieght
 
 // GLOBAL VARIABLES
-bool are_we_finding_offsets = true;
+bool are_we_finding_offsets = false;
 
 float initial_pressure;  // pressure at setup
 float current_pressure;  // pressure at loop
@@ -42,31 +42,31 @@ int ON_BOARD_LED_RED = 23;
 int ON_BOARD_LED_BLUE = 24;
 
 long last_time_clock = 0;
+long count = 0;
 
 void integrate_gyro() {
-    if (IMU.gyroscopeAvailable()) {
         IMU.readGyroscope(x_gyro_acc, y_gyro_acc, z_gyro_acc);
         //  Serial.println(y_gyro_acc);
-        long t_diff = micros() - last_time_clock;
-        double t_diff_dec = (double)t_diff / (double)1000000;
-        //  if (micros() % 100 == 1) {
-        //    Serial.println(t_diff_dec, 10);
-        //  }
+        auto time = micros();
+        long t_diff = time - last_time_clock;
+        last_time_clock = time;
+        count++;
+        if ((count % 100) == 0) {
+          // Serial.println(t_diff, 10);
+        }
         x_gyro_acc -= x_gyro_offset;
         y_gyro_acc -= y_gyro_offset;
         z_gyro_acc -= z_gyro_offset;
         // Serial.println(x_gyro_acc);
-        if (abs(x_gyro_acc) > 10) {
-            x_gyro_angle += x_gyro_acc * t_diff_dec;
+        if (abs(x_gyro_acc) > 1) {
+            x_gyro_angle += x_gyro_acc * t_diff;
         }
-        if (abs(y_gyro_acc) > 10) {
-            y_gyro_angle += y_gyro_acc * t_diff_dec;
+        if (abs(y_gyro_acc) > 1) {
+            y_gyro_angle += y_gyro_acc * t_diff;
         }
-        if (abs(z_gyro_acc) > 10) {
-            z_gyro_angle += z_gyro_acc * t_diff_dec;
+        if (abs(z_gyro_acc) > 1) {
+            z_gyro_angle += z_gyro_acc * t_diff;
         }
-        last_time_clock = micros();
-    }
 }
 
 void on_board_led(int r, int g, int b) {
@@ -79,7 +79,7 @@ void setup() {
     on_board_led(255, 0, 0);
     Serial.begin(
         9600);  // opens serial port, sets data rate to 9600 bps debug serial
-    while (!Serial) delay(10);  // wait for computer to connect (debug)
+   // while (!Serial) delay(10);  // wait for computer to connect (debug)
     Serial.println("Begin program");
 
     // initialize IMU
@@ -97,15 +97,16 @@ void setup() {
     }
     // calibrate IMU offsets
     if (are_we_finding_offsets) {
+      float found_x_gyro_offset = 0; float found_y_gyro_offset = 0; float found_z_gyro_offset = 0; 
         for (int i = 0; i < 10000; i++) {
             IMU.readGyroscope(x_gyro_acc, y_gyro_acc, z_gyro_acc);
-            x_gyro_offset += x_gyro_acc;
-            y_gyro_offset += y_gyro_acc;
-            z_gyro_offset += z_gyro_acc;
+            found_x_gyro_offset += x_gyro_acc;
+            found_y_gyro_offset += y_gyro_acc;
+            found_z_gyro_offset += z_gyro_acc;
         }
-        float found_x_gyro_offset = x_gyro_offset / (float)10000;
-        float found_y_gyro_offset = y_gyro_offset / (float)10000;
-        float found_z_gyro_offset = z_gyro_offset / (float)10000;
+         found_x_gyro_offset = found_x_gyro_offset / (float)10000;
+         found_y_gyro_offset = found_y_gyro_offset / (float)10000;
+         found_z_gyro_offset = found_z_gyro_offset / (float)10000;
 
         Serial.println(found_x_gyro_offset);
         Serial.println(found_y_gyro_offset);
@@ -127,13 +128,13 @@ void loop() {
     // imu test
     integrate_gyro();
     if (micros() % 300 == 1 && !are_we_finding_offsets) {
-         Serial.println(y_gyro_angle);
+         Serial.println(y_gyro_angle / 1000000);
     }
-    if (abs(y_gyro_angle) > 100) {
+    if (abs(y_gyro_angle) > 100 * 1000000) {
         on_board_led(0, 18, 179);  // yellowish
         Serial.println("DEPLOY");
         while (true) {
         }
     }
-    // delay(5);
+    //delay(1);
 }
