@@ -1,9 +1,9 @@
 #include <ArduinoBLE.h>
 #include <Arduino_LPS22HB.h>
 #include <Arduino_LSM9DS1.h>
+#include <SD.h>
+#include <SPI.h>
 #include <Servo.h>
-//#include <SPI.h>
-//#include <SD.h> 
 
 // CONFIGURATION STEPS
 // Install arduino 33 port manager: tools>board>board manager>arduino 33
@@ -20,13 +20,12 @@ int ON_BOARD_LED_GREEN = 22;
 int ON_BOARD_LED_RED = 23;
 int ON_BOARD_LED_BLUE = 24;
 
-Servo our_servo; 
+Servo our_servo;
 
-//HARDWARE SETUP
-int SERVO_PORT = 2;
+// HARDWARE SETUP
+int SERVO_PORT = 3;
 int LED_PORT = 0;
 int SD_CARD = 0;
-
 
 void on_board_led(int r, int g, int b) {
     analogWrite(ON_BOARD_LED_RED, r);
@@ -37,12 +36,20 @@ void on_board_led(int r, int g, int b) {
 void setup() {
     on_board_led(255, 0, 0);
 
-    our_servo.attach(SERVO_PORT);
-    our_servo.write(0); 
-
     Serial.begin(9600);
     // while (!Serial) delay(10);  // wait for computer to connect (debug)
     Serial.println("Begin program");
+
+    our_servo.attach(2);
+    our_servo.write(0);
+    
+        for (int i = 0; i < 20; i ++) {
+            Serial.println(i);
+           if (SD.begin(i)) {
+              Serial.println(i);
+              break;
+         }
+     }
 
     // initialize IMU
     IMU.begin();
@@ -79,19 +86,20 @@ void loop() {
             while (true) {
                 if (IMU.readAcceleration(x_acceleration, y_acceleration, z_acceleration)) {
                     if (abs(x_acceleration) > 2) {
-                      Serial.println(x_acceleration);
+                        Serial.println(x_acceleration);
                     }
-                    if ( (abs(x_acceleration) < 0.2 && (millis()-currtime) > 2000) || (millis()-currtime > 3500)) {
+                    if ((abs(x_acceleration) < 0.2 &&
+                         (millis() - currtime) > 2000) ||
+                        (millis() - currtime > 3500)) {
                         Serial.println("DEPLOY");
                         while (true) {
                             // deploy code
-                            our_servo.write(-50); 
+                            our_servo.write(180);
                             delay(5000);
                         }
                         delay(10);
                     }
-                } else {
-                    // No reading
+                    delay (10);
                 }
             }
         }
