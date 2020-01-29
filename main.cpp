@@ -23,8 +23,8 @@ int ON_BOARD_LED_BLUE = 24;
 Servo our_servo;
 
 // HARDWARE SETUP
-int SERVO_PORT = 3;
-int LED_PORT = 0;
+int SERVO_PORT = 2;
+int LED_PORT = 3;
 int SD_CARD = 0;
 
 void on_board_led(int r, int g, int b) {
@@ -35,21 +35,25 @@ void on_board_led(int r, int g, int b) {
 
 void setup() {
     on_board_led(255, 0, 0);
+    pinMode(LED_PORT, OUTPUT);
 
     Serial.begin(9600);
     // while (!Serial) delay(10);  // wait for computer to connect (debug)
     Serial.println("Begin program");
 
-    our_servo.attach(2);
+    our_servo.attach(SERVO_PORT);
     our_servo.write(0);
     
-        for (int i = 0; i < 20; i ++) {
-            Serial.println(i);
-           if (SD.begin(i)) {
-              Serial.println(i);
-              break;
-         }
-     }
+
+   // pinMode(10, OUTPUT); // change this to 53 on a mega  // don't follow this!!
+   // digitalWrite(10, HIGH); // Add this line
+   // for (int i = 0; i < 2000; i ++) {
+   //        Serial.println(i);
+   //        if (SD.begin(i % 20)) {
+   //           Serial.println(i);
+   //      }
+   //      delay(1);
+   //  }
 
     // initialize IMU
     IMU.begin();
@@ -73,6 +77,7 @@ void setup() {
 
     delay(100);
     on_board_led(0, 255, 0);
+    digitalWrite(LED_PORT, HIGH);
 }
 
 // the loop function runs over and over again forever
@@ -94,6 +99,8 @@ void loop() {
                         Serial.println("DEPLOY");
                         while (true) {
                             // deploy code
+                            digitalWrite(LED_PORT, LOW);
+                            on_board_led(0, 0, 0);
                             our_servo.write(180);
                             delay(5000);
                         }
