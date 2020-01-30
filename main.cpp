@@ -34,6 +34,8 @@ void on_board_led(int r, int g, int b) {
 }
 
 void setup() {
+
+
     on_board_led(255, 0, 0);
     pinMode(LED_PORT, OUTPUT);
 
@@ -84,16 +86,17 @@ void setup() {
 void loop() {
     // imu test
     if (IMU.readAcceleration(x_acceleration, y_acceleration, z_acceleration)) {
-        if (x_acceleration > 2) {
+        Serial.println(-(y_acceleration));
+        if (-(y_acceleration) > 2) {
             delay(10);
             long currtime = millis();
             Serial.println("LAUNCH");
             while (true) {
                 if (IMU.readAcceleration(x_acceleration, y_acceleration, z_acceleration)) {
-                    if (abs(x_acceleration) > 2) {
-                        Serial.println(x_acceleration);
+                    if (abs(-(y_acceleration)) > 2) {
+                        Serial.println(-(y_acceleration));
                     }
-                    if ((abs(x_acceleration) < 0.2 &&
+                    if ((abs(-(y_acceleration)) < 0.2 &&
                          (millis() - currtime) > 2000) ||
                         (millis() - currtime > 3500)) {
                         Serial.println("DEPLOY");
