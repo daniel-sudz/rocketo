@@ -1,7 +1,7 @@
 # rocketo
 Engineering 2 rocket code for deploying parachute based on accelerometer readings
 
-## Succesfull deployment flight flogs 
+## Succesfull deployment flight logs 
 
 <p float="left">
   <img src="./flight1.png" width="288">
